@@ -43,7 +43,7 @@ app.use(cors());
 app.use(
 	fileUpload({ 
 		useTempFiles:true,                     //this middeare is for fileupload in local media;
-		tempFileDir:"/tmp",
+		tempFileDir: require("os").tmpdir(),
 	})
 )
 //cloudinary connection

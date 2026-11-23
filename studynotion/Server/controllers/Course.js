@@ -1,7 +1,7 @@
 // const Course = require("../models/Course");
 // const Category = require("../models/Category");
 // const User = require("../models/User");
-// const { uploadImageToCloudinary } = require("../utils/imageUploader");
+// const { uploadImageToCloudinary, uploadThumbnailToCloudinary } = require("../utils/imageUploader");
 // const Section = require("../models/Section")
 // const SubSection = require('../models/SubSection')
 // const CourseProgress = require("../models/CourseProgress")
@@ -13,7 +13,7 @@ const Category = require("../models/Category")
 const Section = require("../models/Section")
 const SubSection = require("../models/SubSection")
 const User = require("../models/User")
-const { uploadImageToCloudinary } = require("../utils/imageUploader")
+const { uploadImageToCloudinary, uploadThumbnailToCloudinary } = require("../utils/imageUploader")
 const CourseProgress = require("../models/CourseProgress")
 const { convertSecondsToDuration } = require("../utils/secToDuration")
 
@@ -84,7 +84,7 @@ exports.createCourse = async (req, res) => {
       })
     }
     // Upload the Thumbnail to Cloudinary
-    const thumbnailImage = await uploadImageToCloudinary(
+    const thumbnailImage = await uploadThumbnailToCloudinary(
       thumbnail,
       process.env.FOLDER_NAME
     )
@@ -154,10 +154,10 @@ exports.editCourse = async (req, res) => {
     }
 
     // If Thumbnail Image is found, update it
-    if (req.files) {
+    if (req.files && req.files.thumbnailImage) {
       console.log("thumbnail update")
       const thumbnail = req.files.thumbnailImage
-      const thumbnailImage = await uploadImageToCloudinary(
+      const thumbnailImage = await uploadThumbnailToCloudinary(
         thumbnail,
         process.env.FOLDER_NAME
       )

@@ -1,5 +1,5 @@
 // Importing React hook for managing component state
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 // Importing React icon component
 import { MdClose } from "react-icons/md"
 import { useSelector } from "react-redux"
@@ -20,35 +20,45 @@ export default function ChipInput({
   // Setting up state for managing chips array
   const [chips, setChips] = useState([])
 
+  const isFirstRun = useRef(true)
+
   useEffect(() => {
     if (editCourse) {
-      // console.log(course)
-      setChips(course?.tag)
+      // tag may be saved as an array or as a JSON string
+      let saved = course?.tag ?? []
+      if (typeof saved === "string") {
+        try { saved = JSON.parse(saved) } catch { saved = [saved] }
+      }
+      setChips(Array.isArray(saved) ? saved : [])
     }
-    register(name, { required: true, validate: (value) => value.length > 0 })
+    register(name, {
+      validate: (value) => (value?.length ?? 0) > 0 || `${label} is required`,
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    setValue(name, chips)
+    // Re-validate on change so the error clears as soon as a tag is added
+    setValue(name, chips, { shouldValidate: !isFirstRun.current })
+    isFirstRun.current = false
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chips])
 
-  // Function to handle user input when chips are added
+  // Add one or more tags (comma separated) from the text box
+  const addChips = (input) => {
+    const values = input.value
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean)
+    if (values.length === 0) return
+    setChips((prev) => [...new Set([...prev, ...values])])
+    input.value = ""
+  }
+
   const handleKeyDown = (event) => {
-    // Check if user presses "Enter" or ","
     if (event.key === "Enter" || event.key === ",") {
-      // Prevent the default behavior of the event
       event.preventDefault()
-      // Get the input value and remove any leading/trailing spaces
-      const chipValue = event.target.value.trim()
-      // Check if the input value exists and is not already in the chips array
-      if (chipValue && !chips.includes(chipValue)) {
-        // Add the chip to the array and clear the input
-        const newChips = [...chips, chipValue]
-        setChips(newChips)
-        event.target.value = ""
-      }
+      addChips(event.target)
     }
   }
 
@@ -93,9 +103,14 @@ export default function ChipInput({
           type="text"
           placeholder={placeholder}
           onKeyDown={handleKeyDown}
+          // Typed-but-not-entered text is kept when leaving the field
+          onBlur={(e) => addChips(e.target)}
           className="form-style w-full"
         />
       </div>
+      <p className="ml-1 text-xs text-richblack-400">
+        Press Enter or comma to add a tag
+      </p>
       {/* Render an error message if the input is required and not filled */}
       {errors[name] && (
         <span className="ml-2 text-xs tracking-wide text-pink-200">

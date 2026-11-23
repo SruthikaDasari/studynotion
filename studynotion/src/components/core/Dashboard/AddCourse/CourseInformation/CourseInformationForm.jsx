@@ -17,6 +17,9 @@ import Upload from "../Upload"
 import ChipInput from "./ChipInput"
 import RequirementsField from "./RequirementField"
 
+// category may be a populated object or just its id
+const getCategoryId = (category) => category?._id ?? category ?? ""
+
 export default function CourseInformationForm() {
   const {
     register,
@@ -37,10 +40,13 @@ export default function CourseInformationForm() {
       setLoading(true)
       const categories = await fetchCourseCategories()
       if (categories.length > 0) {
-        // console.log("categories", categories)
         setCourseCategories(categories)
       }
       setLoading(false)
+      // Select the saved category only after its <option> exists
+      if (editCourse) {
+        setValue("courseCategory", getCategoryId(course.category))
+      }
     }
     // if form is in edit mode
     if (editCourse) {
@@ -50,7 +56,6 @@ export default function CourseInformationForm() {
       setValue("coursePrice", course.price)
       setValue("courseTags", course.tag)
       setValue("courseBenefits", course.whatYouWillLearn)
-      setValue("courseCategory", course.category)
       setValue("courseRequirements", course.instructions)
       setValue("courseImage", course.thumbnail)
     }
@@ -68,7 +73,7 @@ export default function CourseInformationForm() {
       currentValues.coursePrice !== course.price ||
       currentValues.courseTags.toString() !== course.tag.toString() ||
       currentValues.courseBenefits !== course.whatYouWillLearn ||
-      currentValues.courseCategory._id !== course.category._id ||
+      currentValues.courseCategory !== getCategoryId(course.category) ||
       currentValues.courseRequirements.toString() !==
         course.instructions.toString() ||
       currentValues.courseImage !== course.thumbnail
@@ -107,7 +112,7 @@ export default function CourseInformationForm() {
         if (currentValues.courseBenefits !== course.whatYouWillLearn) {
           formData.append("whatYouWillLearn", data.courseBenefits)
         }
-        if (currentValues.courseCategory._id !== course.category._id) {
+        if (currentValues.courseCategory !== getCategoryId(course.category)) {
           formData.append("category", data.courseCategory)
         }
         if (
@@ -225,6 +230,11 @@ export default function CourseInformationForm() {
         <label className="text-sm text-richblack-5" htmlFor="courseCategory">
           Course Category <sup className="text-pink-200">*</sup>
         </label>
+        {!loading && courseCategories.length === 0 && (
+          <span className="text-xs text-pink-200">
+            No categories yet. An admin must create them first.
+          </span>
+        )}
         <select
           {...register("courseCategory", { required: true })}
           defaultValue=""
@@ -234,9 +244,8 @@ export default function CourseInformationForm() {
           <option value="" disabled>
             Choose a Category
           </option>
-          {!loading &&
-            courseCategories?.map((category, indx) => (
-              <option key={indx} value={category?._id}>
+          {courseCategories?.map((category) => (
+              <option key={category._id} value={category._id}>
                 {category?.name}
               </option>
             ))}

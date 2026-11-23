@@ -76,7 +76,7 @@ export default function CoursesTable({ courses, setCourses }) {
                   <img
                     src={course?.thumbnail}
                     alt={course?.courseName}
-                    className="h-[148px] w-[220px] rounded-lg object-cover"
+                    className="aspect-video w-[220px] rounded-lg object-cover"
                   />
                   <div className="flex flex-col justify-between">
                     <p className="text-lg font-semibold text-richblack-5">

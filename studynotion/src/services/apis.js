@@ -1,4 +1,5 @@
-const BASE_URL = "https://localhost:4000/api/v1"
+// Live: set REACT_APP_BASE_URL (e.g. https://your-backend.com/api/v1) on the frontend host
+const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:4000/api/v1"
 
 // AUTH ENDPOINTS
 export const endpoints = {
