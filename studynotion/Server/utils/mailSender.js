@@ -4,6 +4,10 @@ const mailSender = async (email, title, body) => {
     try{
             let transporter = nodemailer.createTransport({
                 host:process.env.MAIL_HOST,
+                // Fail fast instead of hanging ~2 min when SMTP is blocked/unreachable
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 15000,
                 auth:{
                     user: process.env.MAIL_USER,
                     pass: process.env.MAIL_PASS,

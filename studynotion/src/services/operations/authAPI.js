@@ -6,6 +6,14 @@ import { setUser } from "../../slices/profileSlice"
 import { apiConnector } from "../apiconnector"
 import { endpoints } from "../apis"
 
+// Show the real reason from the backend instead of a generic message
+const getErrorMessage = (error, fallback) => {
+  if (error?.response?.data?.message) return error.response.data.message
+  if (error?.request && !error?.response)
+    return "Cannot reach server. Check REACT_APP_BASE_URL / backend status."
+  return error?.message || fallback
+}
+
 const {
   SENDOTP_API,
   SIGNUP_API,
@@ -35,7 +43,7 @@ export function sendOtp(email, navigate) {
       navigate("/verify-email")
     } catch (error) {
       console.log("SENDOTP API ERROR............", error)
-      toast.error("Could Not Send OTP")
+      toast.error(getErrorMessage(error, "Could Not Send OTP"))
     }
     dispatch(setLoading(false))
     toast.dismiss(toastId)
@@ -75,7 +83,7 @@ export function signUp(
       navigate("/login")
     } catch (error) {
       console.log("SIGNUP API ERROR............", error)
-      toast.error("Signup Failed")
+      toast.error(getErrorMessage(error, "Signup Failed"))
       navigate("/signup")
     }
     dispatch(setLoading(false))
@@ -111,7 +119,7 @@ export function login(email, password, navigate) {
       navigate("/dashboard/my-profile")
     } catch (error) {
       console.log("LOGIN API ERROR............", error)
-      toast.error("Login Failed")
+      toast.error(getErrorMessage(error, "Login Failed"))
     }
     dispatch(setLoading(false))
     toast.dismiss(toastId)
