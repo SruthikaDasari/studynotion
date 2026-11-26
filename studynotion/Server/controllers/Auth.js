@@ -202,26 +202,32 @@ exports.sendotp = async (req, res) => {
 			lowerCaseAlphabets: false,
 			specialChars: false,
 		});
-		const result = await OTP.findOne({ otp: otp });
-		console.log("Result is Generate OTP Func");
-		console.log("OTP", otp);
-		console.log("Result", result);
-		while (result) {
+		// Regenerate until the OTP is unique (old loop never re-checked and could hang)
+		while (await OTP.findOne({ otp: otp })) {
 			otp = otpGenerator.generate(6, {
 				upperCaseAlphabets: false,
+				lowerCaseAlphabets: false,
+				specialChars: false,
 			});
 		}
 		const otpPayload = { email, otp };
 		const otpBody = await OTP.create(otpPayload);
 		console.log("OTP Body", otpBody);
+		if (otpBody.$locals.emailFailed) {
+			// Demo mode: email couldn't be sent, so return the OTP for on-screen display
+			return res.status(200).json({
+				success: true,
+				message: `Email could not be sent. Demo OTP shown on screen.`,
+				demoOtp: otp,
+			});
+		}
 		res.status(200).json({
 			success: true,
 			message: `OTP Sent Successfully`,
-			otp,
 		});
 	} catch (error) {
 		console.log(error.message);
-		return res.status(500).json({ success: false, error: error.message });
+		return res.status(500).json({ success: false, message: error.message, error: error.message });
 	}
 };
 

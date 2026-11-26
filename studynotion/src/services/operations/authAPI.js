@@ -39,7 +39,14 @@ export function sendOtp(email, navigate) {
         throw new Error(response.data.message)
       }
 
-      toast.success("OTP Sent Successfully")
+      if (response.data.demoOtp) {
+        // Demo mode: email service unavailable, show OTP on screen
+        toast.success(`Demo mode: your OTP is ${response.data.demoOtp}`, {
+          duration: 60000,
+        })
+      } else {
+        toast.success("OTP Sent Successfully")
+      }
       navigate("/verify-email")
     } catch (error) {
       console.log("SENDOTP API ERROR............", error)

@@ -24,6 +24,10 @@ const OTPSchema = new mongoose.Schema({
 async function sendVerificationEmail(email, otp) {
     try{
         const mailResponse = await mailSender(email, "Verification Email from StudyNotion", emailTemplate(otp));
+        // mailSender swallows errors and returns undefined on failure
+        if (!mailResponse) {
+            throw new Error("Could not send OTP email. Please try again later.");
+        }
         console.log("Email sent Successfully: ", mailResponse);
     }
     catch(error) {
@@ -35,7 +39,15 @@ async function sendVerificationEmail(email, otp) {
 OTPSchema.pre("save", async function(next){                        //here pre-save means otp is sended before the saving of OTPSchema.
     // Only send an email when a new document is created
 	if (this.isNew) {
-		await sendVerificationEmail(this.email, this.otp);
+		try {
+			await sendVerificationEmail(this.email, this.otp);
+		} catch (error) {
+			// Demo mode (default on): if email can't be sent (e.g. Render free blocks SMTP),
+			// still save the OTP and let the controller show it on screen.
+			// Set OTP_DEMO_MODE=false to require real email delivery.
+			if (process.env.OTP_DEMO_MODE === "false") throw error;
+			this.$locals.emailFailed = true;
+		}
 	}
     next();
 }) 
